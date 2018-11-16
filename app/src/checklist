@@ -1,0 +1,136 @@
+import java.time.LocalDateTime
+
+class User
+
+data class Task(var name: String = "", var description: String = "",
+                var hasDeadline: Boolean = false, var deadline: String = "",
+                var completed: Boolean = false, var datetimeWhenCompleted: String = "",
+                var completedBy: User) {
+
+    constructor(_name: String, _description: String) name = _name, description = _description
+
+    constructor(_name: String, _description: String, _deadline: String) {
+        name = _name
+        description = _description
+        deadline = _deadline
+        hasDeadline = true
+    }
+}
+
+enum class kAction {
+    CREATE_TASK, COMPLETE_TASK, DELETE_TASK, CHANGE_TASK_NAME,
+    CHANGE_TASK_DESCRIPTION, CHANGE_TASK_DEADLINE, REMOVE_TASK_DEADLINE
+}
+
+data class Change(var taskName: String, var changedBy: User,
+                  var changeType: Action, var changedTo: String) {
+
+    constructor(_taskName: String, _changedBy: User, _changeType: Action, _changedTo: String) {
+        taskName = _taskName
+        changedBy = _changedBy
+        changeType = _changeType
+        changedTo = _changedTo
+    }
+
+    constructor(_taskName: String, _changedBy: User, _changeType: Action) {
+        taskName = _taskName
+        changedBy = _changedBy
+        changeType = _changeType
+        changedTo = ""
+    }
+}
+
+class Checklist(var tasks: MutableList<Task>, var users: MutableList<User>,
+                var changes: MutableList<Change>) {
+
+    fun logChange(taskChanged: String, changedBy: User, changeType: kAction, changedTo: String) {
+        val change = Change(taskChanged, changedBy, changeType, changedTo)
+        changes.add(change)
+    }
+
+    fun logChange(taskChanged: String, changedBy: User, changeType: kAction) {
+        val change = Change(taskChanged, changedBy, changeType)
+        changes.add(change)
+    }
+
+    fun createTask(name: String, description: String, createdBy: User) {
+        val task: Task(name, description)
+        tasks.add(task)
+        logChange(name, createdBy, kAction.CREATE_TASK, name)
+    }
+
+    fun createTask(name: String, description: String, deadline: String, createdBy: User) {
+        val task: Task(name, description, deadline)
+        tasks.add(task)
+        logChange(name, createdBy, kAction.CREATE_TASK, name)
+    }
+
+    fun completeTask(taskCompleted: Task, completedBy: User) {
+        for (task in tasks) {
+            if (task.name == taskCompleted.name) {
+                task.completed = true
+                task.completedBy = User
+                task.datetimeWhenCompleted = LocalDateTime.now()
+                logChange(task.name, completedBy, kAction.COMPLETE_TASK)
+            }
+        }
+    }
+
+    //This function allows the user to manually enter the date/time a task was completed on
+    fun completeTask(taskCompleted: Task, completedBy: User, datetimeWhenCompleted: String) {
+        for (task in tasks) {
+            if (task.name == taskCompleted.name) {
+                task.completed = true
+                task.completedBy = User
+                task.datetimeWhenCompleted = datetimeWhenCompleted
+                logChange(task.name, completedBy, kAction.COMPLETE_TASK)
+            }
+        }
+    }
+
+    fun deleteTask(taskDeleted: Task, deletedBy: User) {
+        for (task in tasks) {
+            if (task.name == taskDeleted.name) {
+                logChange(task.name, deletedBy, kAction.DELETE_TASK)
+                tasks.remove(task)
+            }
+        }
+    }
+
+    fun changeTaskName(taskModified: Task, modifiedBy: User, name: String) {
+        for (task in tasks) {
+            if (task.name == taskModified.name) {
+                logChange(task.name, modifiedBy, kAction.CHANGE_TASK_NAME, name)
+                task.name = name
+            }
+        }
+    }
+
+    fun changeTaskDescription(taskModified: Task, modifiedBy: User, description: String) {
+        for (task in tasks) {
+            if (task.name == taskModified.name) {
+                task.description = description
+                logChange(task.name, modifiedBy, kAction.CHANGE_TASK_DESCRIPTION)
+            }
+        }
+    }
+
+    fun changeTaskDeadline(taskModified: Task, modifiedBy: User, deadline: String) {
+        for (task in tasks) {
+            if (task.name == taskModified.name) {
+                task.deadline = deadline
+                logChange(task.name, modifiedBy, kAction.CHANGE_TASK_DEADLINE, deadline)
+            }
+        }
+    }
+
+    fun removeDeadline(taskModified: Task, modifiedBy: User) {
+        for (task in tasks) {
+            if (task.name == taskModified.name) {
+                task.deadline = ""
+                task.hasDeadline = false
+                logChange(task.name, modifiedBy, kAction.REMOVE_TASK_DEADLINE)
+            }
+        }
+    }
+}
